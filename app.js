@@ -30,6 +30,10 @@ async function processFile(row, index, total) {
             writer.on("error", (err) => {
                 rej(`Falha ao salvar arquivo ${fileName}: ${err.message}`);
             });
+
+            writer.on("close", () => {
+                rej(`Conexão fechada antes de salvar o arquivo ${fileName}`);
+            });
         });
 
         console.log(`${new Date().toLocaleString()} - ${message}`);
@@ -69,4 +73,4 @@ async function app() {
     }
 }
 
-app();
+app();+
