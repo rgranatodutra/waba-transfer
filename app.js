@@ -28,15 +28,15 @@ async function processFile(row, index, total) {
             });
 
             writer.on("error", (err) => {
-                rej(`Falha ao salvar arquivo ${fileName}: ${err.message}`);
+                rej(new Error(`Falha ao salvar arquivo ${fileName}: ${err.message}`));
             });
 
             writer.on("close", () => {
-                rej(`Conexão fechada antes de salvar o arquivo ${fileName}`);
+                rej(new Error(`Conexão fechada antes de salvar o arquivo ${fileName}`));
             });
 
             setTimeout(() => {
-                rej(`Timeout ao salvar arquivo ${fileName}`);
+                rej(new Error(`Timeout ao salvar arquivo ${fileName}`));
             }, 5000);
         });
 
