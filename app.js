@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createPool } from "mysql2/promise";
+import {createPool} from "mysql2/promise";
 import fs from "fs";
 import path from "path";
 
@@ -16,7 +16,7 @@ async function processFile(row, index, total) {
         }
 
         const reqUrl = "http://172.22.197.92:7001/" + fileName;
-        const response = await axios.get(reqUrl, { responseType: "stream", timeout: 10000 });
+        const response = await axios.get(reqUrl, {responseType: "stream", timeout: 10000});
 
         const message = await new Promise((res, rej) => {
             const writer = fs.createWriteStream(localFilePath);
@@ -55,18 +55,24 @@ async function app() {
     });
 
     try {
-        const messagesQuery = "SELECT wf.NOME_ARQUIVO FROM w_mensagens wm"
-            + " RIGHT JOIN w_mensagens_arquivos wf ON wf.CODIGO_MENSAGEM = wm.CODIGO"
-            + " WHERE wm.DATA_HORA >= '2024-08-01'"
-            + " ORDER BY wm.DATA_HORA DESC";
+        const messagesQuery =
+            `SELECT wf.NOME_ARQUIVO, wm.FROM_ME, wf.TIPO
+             FROM w_mensagens wm
+                      RIGHT JOIN w_mensagens_arquivos wf ON wf.CODIGO_MENSAGEM = wm.CODIGO
+             WHERE wm.DATA_HORA >= '2024-08-01'
+             ORDER BY wm.DATA_HORA DESC`;
 
         const [rows] = await pool.query(messagesQuery);
 
-        const total = rows.length;
+        const filteredFiles = rows.filter(r => {
+            return !(r["FROM_ME"] && r["TIPO"].includes("pdf"));
+        });
+
+        const total = filteredFiles.length;
         const batchSize = 10;
 
         for (let i = 0; i < total; i += batchSize) {
-            const batch = rows.slice(i, i + batchSize).map((row, index) => processFile(row, i + index + 1, total));
+            const batch = filteredFiles.slice(i, i + batchSize).map((row, index) => processFile(row, i + index + 1, total));
             await Promise.all(batch);
         }
     } catch (err) {
