@@ -34,6 +34,10 @@ async function processFile(row, index, total) {
             writer.on("close", () => {
                 rej(`Conexão fechada antes de salvar o arquivo ${fileName}`);
             });
+
+            setTimeout(() => {
+                rej(`Timeout ao salvar arquivo ${fileName}`);
+            }, 5000);
         });
 
         console.log(`${new Date().toLocaleString()} - ${message}`);
